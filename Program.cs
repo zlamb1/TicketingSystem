@@ -6,7 +6,7 @@ namespace TicketingSystem
 {
     class Ticket
     {
-        public Ticket(int id, string summary, string status, string priority, string submitter, string assigned, List<string> watchers)
+        public Ticket(int id, string summary, string status, string priority, string submitter, string assigned)
         {
             this.id = id;
             this.summary = summary;
@@ -14,20 +14,23 @@ namespace TicketingSystem
             this.priority = priority;
             this.submitter = submitter;
             this.assigned = assigned;
-            this.watchers = watchers;
         }
         private int id;
         private string summary, status, priority, submitter, assigned;
         private List<string> watchers;
+        public List<string> Watchers { set { watchers = value; } }
         public override string ToString()
         {
             string line = id + "," + summary + ","
             + status + "," + priority + ","
             + submitter + "," + assigned + ",";
-            for (int wIndex = 0; wIndex < watchers.Count; wIndex++)
+            if (watchers != null)
             {
-                line += watchers[wIndex];
-                if (wIndex != watchers.Count - 1) line += "|";
+                for (int wIndex = 0; wIndex < watchers.Count; wIndex++)
+                {
+                    line += watchers[wIndex];
+                    if (wIndex != watchers.Count - 1) line += "|";
+                }
             }
             return line;
         }
@@ -74,7 +77,8 @@ namespace TicketingSystem
                     Console.WriteLine("Tickets: ");
                     while (!reader.EndOfStream)
                     {
-                        if (i != 0) Console.WriteLine(reader.ReadLine());
+                        string line = reader.ReadLine(); 
+                        if (i != 0) Console.WriteLine(line);
                         i++;
                     }
                     reader.Close();
@@ -104,6 +108,9 @@ namespace TicketingSystem
                 }
 
                 List<string> watchers = new List<string>();
+                Ticket ticket = new Ticket(id, GetInput("Enter Summary: "),
+                    GetInput("Enter Status: "), GetInput("Enter Priority: "),
+                    GetInput("Enter Submitter: "), GetInput("Enter Assigned: "));
                 while (true)
                 {
                     watchers.Add(GetInput("Enter Watcher: "));
@@ -111,16 +118,13 @@ namespace TicketingSystem
                     if (resp1 == "Y") continue;
                     else break;
                 }
-                tickets.Add(new Ticket(id, GetInput("Enter Summary: "),
-                    GetInput("Enter Status: "), GetInput("Enter Priority: "),
-                    GetInput("Enter Submitter: "), GetInput("Enter Assigned: "),
-                    watchers));
+                ticket.Watchers = watchers;
+                tickets.Add(ticket);
                 string resp = GetInput("Would you like to enter another ticket (Y/N)? ").ToUpper();
                 if (resp == "Y") continue;
                 else break;
             }
             string path = GetInput("Enter a file name: ");
-
             FileStream fs;
             if (!File.Exists(path))
                 fs = new FileStream(path, FileMode.Append, FileAccess.Write);
@@ -134,6 +138,7 @@ namespace TicketingSystem
             writer.Flush();
             writer.Close();
             fs.Close();
+            Console.WriteLine("Writing to file " + path + "...");
         }
         static string GetInput(string prompt)
         {
